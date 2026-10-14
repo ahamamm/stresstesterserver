@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ARB – Run MyTool (choose payload style)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    #log {
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 300px;
+      overflow: auto;
+      background: #fafafa;
+      white-space: pre-wrap;
+    }
+
+    .info {
+      color: #0066cc;
+    }
+
+    .error {
+      color: #cc0000;
+    }
+
+    .log {
+      color: #006600;
+    }
+
+    .welcome {
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Stress Tester Draft</h2>
+
+  <label>Strategy:
+    <select id="strategy">
+      <option value="duration">Duration</option>
+      <option value="stress">Stress</option>
+    </select>
+  </label><br><br>
+
+  <label>Per:
+    <select id="per">
+      <option value="one-worker">Per worker</option>
+      <option value="all-workers">Shared by all workers</option>
+    </select>
+  </label><br><br>
+
+  <label>Template:
+    <select id="tpath">
+      <option value="flowtemplates/IPS_Inbound_Flow_test_queue.json">IPS_Inbound_Flow_test_queue</option>
+      <option value="flowtemplates/IPS_Inbound_Flow.json">IPS_Inbound_Flow</option>
+      <option value="flowtemplates/IPS_Inbound_Flow.json">IPS_Inbound_Flow</option>
+      <option value="flowtemplates/IPS_Outbound_Flow_test_queue.json">IPS_Outbound_Flow_test_queue</option>
+      <option value="flowtemplates/IPS_Outbound_Flow.json">IPS_Outbound_Flow</option>
+    </select>
+  </label><br><br>
+
+  <label> Workers: #
+    <select id="workers">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="7">7</option>
+      <option value="8">8</option>
+      <option value="9">9</option>
+      <option value="10">10</option>
+    </select></label><br><br>
+
+  <label>Messages: #<input type="text" id="messages"></label><br><br>
+
+  <label>duration: #<input type="text" id="duration"></label>Seconds<br><br>
+
+  <label>interval: #<input type="text" id="frqnc"></label>Seconds<br><br>
+
+  <button id="runBtn">Start Test</button>
+
+  <div id="log"></div>
+
+  <script>
+    function isInteger(val) {
+      // Convert strings that look like numbers first (optional)
+      const num = typeof val === 'string' ? Number(val) : val;
+      return Number.isInteger(num);
+    }
+
+    const logDiv = document.getElementById('log');
+    function addLine(txt, css = '') {
+      const el = document.createElement('span');
+      el.textContent = txt + '\n';
+      if (css) el.className = css;
+      logDiv.appendChild(el);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // ------------------------------------------------------------
+    // Adjust if you run the Go service behind a TLS‑terminating proxy.
+    // ------------------------------------------------------------
+    const ws = new WebSocket('ws://localhost:8080/ws');
+
+    ws.onopen = () => addLine('[INFO] WebSocket opened', 'info');
+    ws.onclose = () => addLine('[INFO] WebSocket closed', 'info');
+    ws.onerror = e => addLine('[ERROR] ' + e.message, 'error');
+
+    ws.onmessage = ev => {
+      try {
+        const data = JSON.parse(ev.data);
+        switch (data.type) {
+          case 'welcome': addLine('[WELCOME] ' + data.message, 'welcome'); break;
+          case 'info': addLine('[INFO] ' + data.message, 'info'); break;
+          case 'error': addLine('[SERVER ERROR] ' + data.message, 'error'); break;
+          case 'log': addLine('[EXE] ' + data.payload, 'log'); break;
+          case 'update': addLine(`[UPDATE] ${data.timestamp} → ${data.value.toFixed(2)}`); break;
+          default: addLine('[UNKNOWN] ' + ev.data); break;
+        }
+      } catch (_) {
+        addLine('[RAW] ' + ev.data);
+      }
+    };
+
+    document.getElementById('runBtn').onclick = () => {
+
+      const workers = document.getElementById('workers').value.trim();
+
+      if (!workers) {
+        addLine('[CLIENT] workers Param is required', 'error');
+        return;
+      }
+
+      if (!isInteger(workers)) {
+        addLine('[CLIENT] workers Param is an integer', 'error');
+        return;
+      }
+      //////////////////////////////////////////////////////////////////////////
+
+      const tpath = document.getElementById('tpath').value;
+      if (!tpath) {
+        addLine('[CLIENT] tpath Param is required', 'error');
+        return;
+      }
+      ////////////////////////////////////////////////////////////////////////
+
+      const messages = document.getElementById('messages').value.trim();
+
+      if (!messages) {
+        addLine('[CLIENT] messages Param is required', 'error');
+        return;
+      }
+
+      if (!isInteger(messages)) {
+        addLine('[CLIENT] messages Param is an integer', 'error');
+        return;
+      }
+      //////////////////////////////////////////////////////////////////////
+
+      const strategy = document.getElementById('strategy').value.trim();
+
+      if (!strategy) {
+        addLine('[CLIENT] strategy Param is required', 'error');
+        return;
+      }
+
+      if (strategy != "duration" && strategy != "stress") {
+        addLine('[CLIENT] strategy Param value is either stress/duration', 'error');
+        return;
+      }
+      //////////////////////////////////////////////////////////////////////
+
+      const per = document.getElementById('per').value.trim();
+
+      if (!per) {
+        addLine('[CLIENT] per Param is required', 'error');
+        return;
+      }
+
+      if (per != "all-workers" && per != "one-worker") {
+        addLine('[CLIENT] Per Param value is either all-workers/one-worker', 'error');
+        return;
+      }
+      ///////////////////////////////////////////////////////////////////////
+      var duration = ""
+      var frqnc = ""
+
+      if (strategy == 'duration') {
+        duration = document.getElementById('duration').value.trim();
+
+        if (!duration) {
+          addLine('[CLIENT] duration Param is required', 'error');
+          return;
+        }
+
+        if (!isInteger(duration)) {
+          addLine('[CLIENT] duration Param is an integer', 'error');
+          return;
+        }
+        //////////////////////////////////////////////////////////////////
+
+        frqnc = document.getElementById('frqnc').value.trim();
+
+        if (!frqnc) {
+          addLine('[CLIENT] frqnc Param is required', 'error');
+          return;
+        }
+
+        if (!isInteger(frqnc)) {
+          addLine('[CLIENT] frqnc Param is an integer', 'error');
+          return;
+        }
+      }
+
+      const base = {
+        cmd: "run",
+        exe: "mytool",
+        args: [
+          "--workers", workers,
+          "--tpath", tpath,
+          "--messages", messages,
+          "--strategy", strategy,
+          "--per", per,
+          "--duration", duration,
+          "--frqnc", frqnc
+        ]
+      };
+
+      const payload = { request: base }
+      addLine('[CLIENT] Sending payload : ' + JSON.stringify(payload), 'info');
+
+
+      ws.send(JSON.stringify(payload));
+      addLine('[CLIENT] Sent payload : ' + JSON.stringify(payload), 'info');
+    };
+  </script>
+</body>
+
+</html>
