@@ -64,7 +64,7 @@ type errorMsg struct {
 // -------------------------------------------------------------------
 var allowedExecutables = map[string]string{
 	// 👉 **Replace** the value with the real, signed path of your binary.
-	"mytool": `d:\ss\stresstester.exe`,
+	"stresstester": `d:\ss\stresstester.exe`,
 	// Add more entries as needed – each must be approved by ARB security.
 }
 
@@ -234,7 +234,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// -------------------- Welcome message --------------------
-	send <- welcomeMsg{Type: "welcome", Message: "Connected to ARB live‑stream service"}
+	send <- welcomeMsg{Type: "welcome", Message: "Connected to Stress Tester service"}
 
 	// -------------------- Read pump (incoming client messages) --------------------
 	go func() {
@@ -351,7 +351,7 @@ func main() {
 
 	// Run the HTTP server in a background goroutine.
 	go func() {
-		log.Printf("[INFO] ARB WebSocket server listening on %s", *addr)
+		log.Printf("[INFO] Stress Tester WebSocket server listening on %s", *addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("[FATAL] ListenAndServe: %v", err)
 		}

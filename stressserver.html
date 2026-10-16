@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>ARB – Run MyTool (choose payload style)</title>
+  <title>Stress Tool Draft Web interface</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,8 +49,8 @@
 
   <label>Per:
     <select id="per">
-      <option value="one-worker">Per worker</option>
-      <option value="all-workers">Shared by all workers</option>
+      <option value="one-worker">for each worker</option>
+      <option value="all-workers">Shared between all workers</option>
     </select>
   </label><br><br>
 
@@ -85,7 +85,9 @@
   <label>interval: #<input type="text" id="frqnc"></label>Seconds<br><br>
 
   <button id="runBtn">Start Test</button>
-
+  <br><br>
+  <button id="clsCnn">Close Connection</button>
+  <br><br>
   <div id="log"></div>
 
   <script>
@@ -96,6 +98,7 @@
     }
 
     const logDiv = document.getElementById('log');
+
     function addLine(txt, css = '') {
       const el = document.createElement('span');
       el.textContent = txt + '\n';
@@ -129,7 +132,17 @@
       }
     };
 
+    function closeWs() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close(1000, '[CLIENT] User closed connection');
+      }
+      ws = null;
+    }
+
+    document.getElementById('clsCnn').addEventListener('click', closeWs);
+
     document.getElementById('runBtn').onclick = () => {
+      //ws = new WebSocket('ws://localhost:8080/ws');
 
       const workers = document.getElementById('workers').value.trim();
 
@@ -189,8 +202,8 @@
         return;
       }
       ///////////////////////////////////////////////////////////////////////
-      var duration = ""
-      var frqnc = ""
+      var duration = "0"
+      var frqnc = "0"
 
       if (strategy == 'duration') {
         duration = document.getElementById('duration').value.trim();
@@ -221,7 +234,7 @@
 
       const base = {
         cmd: "run",
-        exe: "mytool",
+        exe: "stresstester",
         args: [
           "--workers", workers,
           "--tpath", tpath,
