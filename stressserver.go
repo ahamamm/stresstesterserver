@@ -63,7 +63,7 @@ type errorMsg struct {
 // 3️⃣  Whitelisted executables (key → absolute, signed path)
 // -------------------------------------------------------------------
 var allowedExecutables = map[string]string{
-	"stresstester": `stresstester`,
+	"stresstester": `./stresstester`,
 	// Add more entries as needed – each must be approved by ARB security.
 }
 
