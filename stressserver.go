@@ -63,8 +63,7 @@ type errorMsg struct {
 // 3️⃣  Whitelisted executables (key → absolute, signed path)
 // -------------------------------------------------------------------
 var allowedExecutables = map[string]string{
-	// 👉 **Replace** the value with the real, signed path of your binary.
-	"stresstester": `d:\ss\stresstester.exe`,
+	"stresstester": `stresstester`,
 	// Add more entries as needed – each must be approved by ARB security.
 }
 
