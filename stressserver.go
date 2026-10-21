@@ -63,7 +63,7 @@ type errorMsg struct {
 // 3️⃣  Whitelisted executables (key → absolute, signed path)
 // -------------------------------------------------------------------
 var allowedExecutables = map[string]string{
-	"stresstester": `./stresstester`,
+	"stresstester": `/home/ahmedhammam/ss/stresstester`,
 	// Add more entries as needed – each must be approved by ARB security.
 }
 
@@ -326,7 +326,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 // 9️⃣  Server entry‑point – graceful shutdown.
 // -------------------------------------------------------------------
 func main() {
-	addr := flag.String("addr", ":8080", "TCP address to listen on")
+	addr := flag.String("addr", ":8181", "TCP address to listen on")
 	shutdownTO := flag.Duration("shutdown-timeout", 10*time.Second,
 		"Graceful shutdown timeout")
 	flag.Parse()

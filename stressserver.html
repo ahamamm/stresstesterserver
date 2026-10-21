@@ -61,6 +61,7 @@
       <option value="flowtemplates/IPS_Inbound_Flow.json">IPS_Inbound_Flow</option>
       <option value="flowtemplates/IPS_Outbound_Flow_test_queue.json">IPS_Outbound_Flow_test_queue</option>
       <option value="flowtemplates/IPS_Outbound_Flow.json">IPS_Outbound_Flow</option>
+      <option value="flowtemplates/local_Inbound_Flow_test_queue.json">local_Inbound_Flow_test_queue</option>
     </select>
   </label><br><br>
 
@@ -110,7 +111,7 @@
     // ------------------------------------------------------------
     // Adjust if you run the Go service behind a TLS‑terminating proxy.
     // ------------------------------------------------------------
-    const ws = new WebSocket('ws://localhost:8080/ws');
+    const ws = new WebSocket('ws://localhost:8181/ws');
 
     ws.onopen = () => addLine('[INFO] WebSocket opened', 'info');
     ws.onclose = () => addLine('[INFO] WebSocket closed', 'info');
