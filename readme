@@ -1,0 +1,22 @@
+#1. commands
+==================
+
+podman build -t stress-tester .
+podman run -p8080:8080 -p8181:8181 --net mq-bridge --name ansh-stress-tester --replace stress-tester
+podman exec -it running-go-app sh
+
+
+to allow network between containers there are two solutions
+
+1- solution add to run command (not recommended)
+--add-host=host.containers.internal:allowed
+
+2- solution to ctreate a network bridge
+   a- podman network create mq-bridge
+   b- podman network connect mq-bridge my-ibm-mq
+   c- use it in podman run command --net mq-bridge  in both containers
+
+
+
+finally use container name like my-ibm-mq(1414)
+=======================================

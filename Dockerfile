@@ -1,4 +1,5 @@
-# --- Run this file one levelup
+# --- bild stressserver and stresstester then put outputs in a directory
+# --- then  Run this file from inside the directory
 
 # --- Stage 1: Build server Go binary ---
 FROM  golang:1.27.1-alpine AS builder

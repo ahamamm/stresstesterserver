@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -63,7 +64,7 @@ type errorMsg struct {
 // 3️⃣  Whitelisted executables (key → absolute, signed path)
 // -------------------------------------------------------------------
 var allowedExecutables = map[string]string{
-	"stresstester": `/stresstester`,
+	"stresstester": `stresstester`,
 	// Add more entries as needed – each must be approved by ARB security.
 }
 
@@ -272,6 +273,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
+			//--ansh
+			absPath, err := getRealPath(exePath)
+			if err != nil {
+				log.Printf("Error getting Message template abs path: %v, relative pathe used.\n", err)
+			} else {
+				exePath = absPath
+			}
+
 			// -------- 8.4  Convert heterogeneous args → []string --------
 			argsStr, err := toStringSlice(req.Args)
 			if err != nil {
@@ -369,4 +378,13 @@ func main() {
 		log.Fatalf("[FATAL] Forced shutdown: %v", err)
 	}
 	log.Println("[INFO] Server stopped gracefully")
+}
+
+func getRealPath(relativepath string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return relativepath, err
+	}
+	absPath := filepath.Join(wd, relativepath)
+	return absPath, nil
 }
