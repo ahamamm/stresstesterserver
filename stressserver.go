@@ -280,7 +280,7 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				exePath = absPath
 			}
-
+			log.Printf("path:", exePath)
 			// -------- 8.4  Convert heterogeneous args → []string --------
 			argsStr, err := toStringSlice(req.Args)
 			if err != nil {

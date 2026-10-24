@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # --- Service 1: The IBM MQ Container ---
+  ibm-mq:
+    image: icr.io/ibm-messaging/mq:latest
+    container_name: my-ibm-mq
+    platform: linux/amd64
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QM1
+      - MQ_APP_PASSWORD=passw0rd
+      - MQ_ADMIN_PASSWORD=passw0rd
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+    # --- STORAGE FIX: Added volume mount with explicit SELinux :Z flag ---
+    volumes:
+      - type: bind
+        source: ~/mq_storage/
+        target: /mnt/mqm
+        bind:
+          selinux: Z
+    networks:
+      - mq-bridge
+
+  # --- Service 2: Your Go Stress Tester Container ---
+  stress-tester:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ansh-stress-tester
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8181:8181"
+    environment:
+      - MQ_CONNECTION_STRING=my-ibm-mq(1414)
+    networks:
+      - mq-bridge
+    depends_on:
+      - ibm-mq
+
+# --- Runtime Network Bridge ---
+networks:
+  mq-bridge:
+    driver: bridge
+
