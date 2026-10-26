@@ -34,6 +34,42 @@
     .welcome {
       color: #333;
     }
+
+    .log-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .log-actions button {
+      padding: 6px 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .log-actions button:hover {
+      background-color: #0056b3;
+    }
+
+    .log-actions button:disabled {
+      background-color: #28a745;
+      cursor: default;
+    }
+
+    #log {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 15px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      border-radius: 4px;
+    }
   </style>
 </head>
 
@@ -85,10 +121,14 @@
 
   <label>interval: #<input type="text" id="frqnc"></label>Seconds<br><br>
 
-  <button id="runBtn">Start Test</button>
-  <br><br>
-  <button id="clsCnn">Close Connection</button>
-  <br><br>
+  <div class="log-actions">
+    <button id="runBtn">Start Test</button>
+    <button id="clsCnn">Close Connection</button>
+
+    <button id="copyLogBtn">Copy Log</button>
+    <button id="downloadLogBtn">Download Log</button>
+  </div>
+
   <div id="log"></div>
 
   <script>
@@ -107,6 +147,59 @@
       logDiv.appendChild(el);
       logDiv.scrollTop = logDiv.scrollHeight;
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const copyBtn = document.getElementById('copyLogBtn');
+      const downloadBtn = document.getElementById('downloadLogBtn');
+
+      // 1. Copy Content Functionality
+      copyBtn.addEventListener('click', async () => {
+        const logText = logDiv.innerText || logDiv.textContent;
+
+        try {
+          await navigator.clipboard.writeText(logText);
+
+          // Optional: Provide quick visual feedback on the button
+          const originalText = copyBtn.innerText;
+          copyBtn.innerText = 'Copied!';
+          copyBtn.disabled = true;
+
+          setTimeout(() => {
+            copyBtn.innerText = originalText;
+            copyBtn.disabled = false;
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+          alert('Could not copy log automatically. Please select text manually.');
+        }
+      });
+
+      // 2. Download Content Functionality
+      downloadBtn.addEventListener('click', () => {
+        const logText = logDiv.innerText || logDiv.textContent;
+
+        // Create a blob object with the log text content
+        const blob = new Blob([logText], { type: 'text/plain;charset=utf-8;' });
+
+        // Create a temporary anchor element
+        const link = document.createElement('a');
+
+        // Generate a timestamped filename (e.g., stress_log_2026-10-26.txt)
+        const dateStr = new Date().toISOString().slice(0, 10);
+        link.download = `stress_log_${dateStr}.txt`;
+
+        // Create a URL point to the blob and trigger download
+        link.href = URL.createObjectURL(blob);
+        link.style.display = 'none';
+
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up the DOM and revoke the object URL
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      });
+    });
 
     // ------------------------------------------------------------
     // Adjust if you run the Go service behind a TLS‑terminating proxy.
