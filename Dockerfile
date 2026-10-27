@@ -31,9 +31,9 @@ COPY --from=builder /stressserver.html /stressserver.html
 COPY --from=builder /upload.html /upload.html
 
 COPY --from=builder /stresstester /stresstester
-COPY --from=builder /flowtemplates /
-COPY --from=builder /messagetemplates/ /
-COPY --from=builder /files/ /
+COPY --from=builder /flowtemplates /flowtemplates/
+COPY --from=builder /messagetemplates/ /messagetemplates/
+COPY --from=builder /files/ /files/
 # Copy the IBM MQ AMD64 libraries to the final stage
 COPY --from=builder /mqm/ /opt/mqm/
 ENV LD_LIBRARY_PATH="/opt/mqm/lib64" \

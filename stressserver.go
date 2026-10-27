@@ -375,7 +375,12 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 		targetFolder = filepath.Base(targetFolder)
 
 		// 2️⃣ Build the directory path and create it if it doesn't exist
-		uploadDir := filepath.Join(".", targetFolder)
+		//uploadDir := filepath.Join(".", targetFolder)
+		uploadDir, err := getRealPath(targetFolder)
+		if err != nil {
+			log.Printf("Error getting Message template abs path: %v, relative pathe used.\n", err)
+			uploadDir = targetFolder
+		}
 
 		safeFilename := filepath.Base(handler.Filename)
 		filePath := filepath.Join(uploadDir, safeFilename)
@@ -414,9 +419,16 @@ func getTPathHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get path relative to the running binary
 	//exePath, _ := os.Executable()
-	templatesDir := filepath.Join(".", "flowtemplates")
+	//templatesDir := filepath.Join(".", "flowtemplates")
+	tpath := "flowtemplates"
+	templatesDir, err := getRealPath(tpath)
+	if err != nil {
+		log.Printf("Error getting Message template abs path: %v, relative pathe used.\n", err)
+	} else {
+		tpath = templatesDir
+	}
 
-	files, err := os.ReadDir(templatesDir)
+	files, err := os.ReadDir(tpath)
 	if err != nil {
 		// Return empty list if folder doesn't exist yet
 		log.Println("error reading dir: ", err)
