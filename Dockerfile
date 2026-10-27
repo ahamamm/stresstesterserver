@@ -29,8 +29,8 @@ RUN mkdir -p /html /opt/mqm
 COPY --from=builder /stressserver /stressserver
 COPY --from=builder /stressserver.html /stressserver.html
 COPY --from=builder /upload.html /upload.html
-
 COPY --from=builder /stresstester /stresstester
+
 COPY --from=builder /flowtemplates /flowtemplates/
 COPY --from=builder /messagetemplates/ /messagetemplates/
 COPY --from=builder /files/ /files/
