@@ -12,7 +12,7 @@
     <!-- Note: action must match the Go endpoint, and enctype must be multipart/form-data -->
     <form action="/upload" method="POST" enctype="multipart/form-data">
         <input type="file" name="myFile" required>
-        <select id="filetype" name="filetype">
+        <select id="filetype" name="filetype" required>
             <option selected="selected" value="flowtemplates">flow template</option>
             <option value="messagetemplates">message template</option>
             <option value="files">other</option>

@@ -403,7 +403,40 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // -------------------------------------------------------------------
-// 9️⃣  Server entry‑point – graceful shutdown.
+// 9️⃣  populate tpath.
+// -------------------------------------------------------------------
+type TPathResponse struct {
+	Paths []string `json:"paths"`
+}
+
+func getTPathHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get path relative to the running binary
+	//exePath, _ := os.Executable()
+	templatesDir := filepath.Join(".", "flowtemplates")
+
+	files, err := os.ReadDir(templatesDir)
+	if err != nil {
+		// Return empty list if folder doesn't exist yet
+		log.Println("error reading dir: ", err)
+		json.NewEncoder(w).Encode(TPathResponse{Paths: []string{}})
+		return
+	}
+
+	var availablePaths []string
+	for _, file := range files {
+		if !file.IsDir() {
+			// Sends the clean file name or path segment (e.g., "stress_log_2026-10-26.txt")
+			availablePaths = append(availablePaths, file.Name())
+		}
+	}
+
+	json.NewEncoder(w).Encode(TPathResponse{Paths: availablePaths})
+}
+
+// -------------------------------------------------------------------
+// 10 Server entry‑point – graceful shutdown.
 // -------------------------------------------------------------------
 func main() {
 	addr := flag.String("addr", ":8080", "TCP address to listen on")
@@ -416,6 +449,7 @@ func main() {
 
 	mux.HandleFunc("/", indexHandler)
 	mux.HandleFunc("/upload", uploadHandler)
+	mux.HandleFunc("/api/tpath", getTPathHandler)
 
 	// Simple health‑check endpoint (required for load‑balancer / monitoring)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {

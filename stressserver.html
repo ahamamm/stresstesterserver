@@ -71,6 +71,42 @@
       border-radius: 4px;
     }
   </style>
+
+  <script>
+    // 🚀 Fetch options from Go backend when the page loads
+    document.addEventListener("DOMContentLoaded", () => {
+      const dropdown = document.getElementById("tpathSelect");
+
+      fetch('/api/tpath')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Clear the loading message
+          dropdown.innerHTML = "";
+
+          if (data.paths.length === 0) {
+            dropdown.innerHTML = '<option value="" disabled>No templates found</option>';
+            return;
+          }
+
+          // Loop through options from backend and build <option> elements
+          data.paths.forEach(fileName => {
+            const option = document.createElement("option");
+            option.value = "flowtemplates/" + fileName; // Path sent to your exec target
+            option.textContent = fileName;               // User-friendly display text
+            dropdown.appendChild(option);
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching templates:", error);
+          dropdown.innerHTML = '<option value="" disabled>Error loading templates</option>';
+        });
+    });
+  </script>
 </head>
 
 <body>
@@ -89,7 +125,7 @@
       <option value="all-workers">Shared between all workers</option>
     </select>
   </label><br><br>
-
+  <!--
   <label>Template:
     <select id="tpath">
       <option value="flowtemplates/IPS_Inbound_Flow_test_queue.json">IPS_Inbound_Flow_test_queue</option>
@@ -99,7 +135,13 @@
       <option value="flowtemplates/IPS_Outbound_Flow.json">IPS_Outbound_Flow</option>
       <option value="flowtemplates/local_Inbound_Flow_test_queue.json">local_Inbound_Flow_test_queue</option>
     </select>
-  </label><br><br>
+  </label>
+-->
+  <!-- 🌟 Dynamic Template Path Selection Dropdown -->
+  <label for="tpathSelect">Template (tpath):</label>
+  <select id="tpathSelect" name="tpath" required>
+    <option value="" disabled selected>Loading templates...</option>
+  </select><br><br>
 
   <label> Workers: #
     <select id="workers">
