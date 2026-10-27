@@ -204,7 +204,7 @@
     // ------------------------------------------------------------
     // Adjust if you run the Go service behind a TLS‑terminating proxy.
     // ------------------------------------------------------------
-    const ws = new WebSocket('ws://localhost:8181/ws');
+    const ws = new WebSocket('ws://localhost:8080/ws');
 
     ws.onopen = () => addLine('[INFO] WebSocket opened', 'info');
     ws.onclose = () => addLine('[INFO] WebSocket closed', 'info');

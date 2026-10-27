@@ -32,7 +32,7 @@ services:
     container_name: ansh-stress-tester
     ports:
       - "127.0.0.1:8080:8080"
-      - "127.0.0.1:8181:8181"
+#      - "127.0.0.1:8181:8181"
     environment:
       - MQ_CONNECTION_STRING=my-ibm-mq(1414)
     networks:

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"net/http"
@@ -332,16 +333,89 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // -------------------------------------------------------------------
+// 🆕 File Upload Handlers
+// -------------------------------------------------------------------
+
+// Serve the index.html page at the root URL
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeFile(w, r, "stressserver.html")
+}
+
+// Handle incoming file uploads via POST requests
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		http.ServeFile(w, r, "upload.html")
+
+	case http.MethodPost:
+		// Limit file size to 10 MB
+		r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
+		if err := r.ParseMultipartForm(10 << 20); err != nil {
+			http.Error(w, "File is too large (Max 10MB)", http.StatusBadRequest)
+			return
+		}
+		if r.PostFormValue("filetype") == "" {
+			http.Error(w, "Error no file type selected", http.StatusBadRequest)
+		}
+
+		file, handler, err := r.FormFile("myFile")
+		if err != nil {
+			http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		// 1️⃣ Extract and sanitize the folder type
+		targetFolder := r.PostFormValue("filetype")
+		// Security: Prevent path traversal (e.g., "filetype" being "../../../etc")
+		targetFolder = filepath.Base(targetFolder)
+
+		// 2️⃣ Build the directory path and create it if it doesn't exist
+		uploadDir := filepath.Join(".", targetFolder)
+
+		safeFilename := filepath.Base(handler.Filename)
+		filePath := filepath.Join(uploadDir, safeFilename)
+
+		dst, err := os.Create(filePath)
+		if err != nil {
+			log.Printf("error uploading %v", err)
+			http.Error(w, "Error creating destination file"+filePath, http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
+
+		if _, err := io.Copy(dst, file); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		fmt.Fprintf(w, "Successfully uploaded file: %s", handler.Filename)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+}
+
+// -------------------------------------------------------------------
 // 9️⃣  Server entry‑point – graceful shutdown.
 // -------------------------------------------------------------------
 func main() {
-	addr := flag.String("addr", ":8181", "TCP address to listen on")
+	addr := flag.String("addr", ":8080", "TCP address to listen on")
 	shutdownTO := flag.Duration("shutdown-timeout", 10*time.Second,
 		"Graceful shutdown timeout")
 	flag.Parse()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", wsHandler)
+
+	mux.HandleFunc("/", indexHandler)
+	mux.HandleFunc("/upload", uploadHandler)
 
 	// Simple health‑check endpoint (required for load‑balancer / monitoring)
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
