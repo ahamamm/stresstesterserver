@@ -2,8 +2,10 @@
 ==================
 
 podman build -t stress-tester .
-podman run -p127.0.0.1:8080:8080 -p127.0.0.1:8181:8181 --net mq-bridge --name ansh-stress-tester --replace localhost/stress-tester:latest
+podman run -p127.0.0.1:8080:8080  --net mq-bridge --name ansh-stress-tester --replace localhost/stress-tester:latest
 podman exec -it ansh-stress-tester sh
+podman-compose up --build -d --force-recreate
+podman-compose down
 
 
 to allow network between containers there are three solutions
