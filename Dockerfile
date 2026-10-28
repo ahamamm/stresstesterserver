@@ -3,11 +3,13 @@
 
 # --- Stage 1: Build server Go binary ---
 FROM   debian:bookworm-slim AS builder
+RUN apt-get update && apt-get install -y unzip
 
 WORKDIR /
 
 COPY . .
 
+RUN unzip mqm.zip -d .
 
 # --- Stage 2: Create the runtime image ---
 # Match the alpine version used in the golang build stage
@@ -26,11 +28,11 @@ WORKDIR /
 # Create the html folder and copy your HTML file
 RUN mkdir -p /html /opt/mqm
 
-COPY --from=builder /stresstester /stresstester
 COPY --from=builder /stressserver /stressserver
 COPY --from=builder /stressserver.html /stressserver.html
 COPY --from=builder /upload.html /upload.html
 
+COPY --from=builder /stresstester /stresstester
 COPY --from=builder /flowtemplates /flowtemplates/
 COPY --from=builder /messagetemplates/ /messagetemplates/
 COPY --from=builder /files/ /files/
