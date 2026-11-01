@@ -2,3 +2,9 @@ podman build -t stress-tester .
 podman run  -p127.0.0.1:8080:8080 -p127.0.0.1:8181:8181 --net mq-bridge --name ansh-stress-tester --replace localhost/stress-tester
 podman exec -it running-go-app sh
 podman-compose up --build -d --force-recreate
+
+//#removed all related images and volumes
+podman-compose down -v --remove-orphans --rmi 
+
+//#removed created images only
+podman-compose down --remove-orphans 
